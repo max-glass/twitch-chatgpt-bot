@@ -22,3 +22,4 @@ Check out the stream/community!
 * December 2022
   * December 20/21
     * mxGlass - Initial commit.
+    * mxGlass - started implementation of !shutup command.
