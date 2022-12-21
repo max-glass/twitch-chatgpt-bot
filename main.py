@@ -9,13 +9,15 @@ import key
 from gtts import gTTS
 import pyglet
 import os
+import threading
+import asyncio
 
 # Set up logging
 logging.basicConfig(level = logging.INFO)
 
 responses = []
 TTSReady = True
-# global music
+global music
 
 class Bot(commands.Bot):
 
@@ -25,12 +27,6 @@ class Bot(commands.Bot):
     # Command that sends a message to the chat using OpenAI's GPT-3 API
     @commands.command()
     async def chatgpt(self, ctx: commands.Context, *, question: str):
-        # global music
-        # if music is not None and not music.eos:
-        #     music.pause()
-        #     duration = music.source.duration
-        #     music.seek(duration)
-
         openai.api_key = key.API_KEY
         prompt = (f"{question}\n")
         completions = openai.Completion.create(
@@ -48,9 +44,11 @@ class Bot(commands.Bot):
         # Bandaid fix for the bot not being able to speak
         tts = gTTS(text = response)
         tts.save("speech.mp3")
-        music = pyglet.resource.media('speech.mp3')
+        global music
+        music = pyglet.media.player('speech.mp3')
         music.volume = 0.1
         music.play()
+
         os.remove("speech.mp3")
         # End of bandaid fix
         
@@ -60,8 +58,26 @@ class Bot(commands.Bot):
         # Split the response into chunks of 500 characters (Twitch max message length)
         n = 500
         chunks = [response[i:i+n] for i in range(0, len(response), n)]
+        count = 1
         for chunk in chunks:
             await ctx.send(chunk)
+            count += 1
+        print("Number of chunks: ",count)
+
+    async def stop_music(self):
+        music.stop()
+        print("Music stopped")
+
+    @commands.command()
+    async def shutup(self, ctx: commands.Context):
+        await self.stop_music()
+
+        loop = asyncio.new_event_loop()
+        asyncio.run_coroutine_threadsafe(self.stop_music(), loop)
+
+        thread = threading.Thread(target = self.stop_music)
+        thread.start()
+
 
     # Event when the bot goes online and is ready to chat
     async def event_ready(self):
@@ -74,12 +90,7 @@ class Bot(commands.Bot):
     @commands.command()
     async def hello(self, ctx: commands.Context):
         # Send a hello back!
-        await ctx.send(f'Hello {ctx.author.name}!')
-
-    @commands.command()
-    async def shutup(self, ctx: commands.Context):
-        await Bot.coro_close()
-        run()
+        await ctx.send(f'Fuck you, {ctx.author.name}!')
 
     async def event_message(self, message):
         if message.echo:
