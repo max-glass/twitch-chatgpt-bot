@@ -76,14 +76,10 @@ class Bot(commands.Bot):
         # Send a hello back!
         await ctx.send(f'Hello {ctx.author.name}!')
 
-    # Command to seek to the end of the current .mp3
     @commands.command()
-
-    # Command to seek to the end of the current .mp3
-    # @commands.command()
-    # async def shutup(self, ctx: commands.Context):
-    #     global music
-    #     music.seek(music.source.duration)
+    async def shutup(self, ctx: commands.Context):
+        TTSReady = False
+        main(TTSReady)
 
     async def event_message(self, message):
         if message.echo:
@@ -94,18 +90,11 @@ class Bot(commands.Bot):
 
         await self.handle_commands(message)
 
-bot = Bot()
-bot.run()
+def main(TTSReady):
+    if TTSReady == False:
+        bot = Bot()
+        bot.run()
+        TTSReady = True
 
-# while True:
-#     if TTSReady == True:
-#         if len(responses) > 0:
-#             TTSReady = False
-#             response = responses.pop()
-#             tts = gTTS(text = response)
-#             tts.save("speech.mp3")
-#             music = pyglet.resource.media('speech.mp3')
-#             music.volume = 0.1
-#             music.play()
-#             TTSReady = True
-#             os.remove("speech.mp3")
+if __name__ == "__main__":
+    main(TTSReady)
