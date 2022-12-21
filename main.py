@@ -40,6 +40,15 @@ class Bot(commands.Bot):
 
         response = completions.choices[0].text
         
+        # Bandaid fix for the bot not being able to speak
+        tts = gTTS(text = response)
+        tts.save("speech.mp3")
+        music = pyglet.resource.media('speech.mp3')
+        music.volume = 0.1
+        music.play()
+        os.remove("speech.mp3")
+        # End of bandaid fix
+        
         global responses
         responses.append(response)
 
@@ -67,15 +76,15 @@ class Bot(commands.Bot):
 bot = Bot()
 bot.run()
 
-while True:
-    if TTSReady == True:
-        if len(responses) > 0:
-            TTSReady = False
-            response = responses.pop()
-            tts = gTTS(text = response)
-            tts.save("speech.mp3")
-            music = pyglet.resource.media('speech.mp3')
-            music.volume = 0.1
-            music.play()
-            TTSReady = True
-            os.remove("speech.mp3")
+# while True:
+#     if TTSReady == True:
+#         if len(responses) > 0:
+#             TTSReady = False
+#             response = responses.pop()
+#             tts = gTTS(text = response)
+#             tts.save("speech.mp3")
+#             music = pyglet.resource.media('speech.mp3')
+#             music.volume = 0.1
+#             music.play()
+#             TTSReady = True
+#             os.remove("speech.mp3")
