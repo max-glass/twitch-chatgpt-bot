@@ -10,9 +10,6 @@ from gtts import gTTS
 import pyglet
 import os
 
-# TODO: Implement image creation and auto upload to Imgur
-# TODO: Paste code responses in a Pastebin/Codebin, hard to determine if it's a code response or not
-
 # Set up logging
 logging.basicConfig(level = logging.INFO)
 
