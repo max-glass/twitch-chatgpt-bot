@@ -78,8 +78,8 @@ class Bot(commands.Bot):
 
     @commands.command()
     async def shutup(self, ctx: commands.Context):
-        TTSReady = False
-        main(TTSReady)
+        await Bot.coro_close()
+        run()
 
     async def event_message(self, message):
         if message.echo:
@@ -90,11 +90,7 @@ class Bot(commands.Bot):
 
         await self.handle_commands(message)
 
-def main(TTSReady):
-    if TTSReady == False:
-        bot = Bot()
-        bot.run()
-        TTSReady = True
-
-if __name__ == "__main__":
-    main(TTSReady)
+def run():
+    bot = Bot()
+    bot.run()
+run()
