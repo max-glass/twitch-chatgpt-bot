@@ -5,14 +5,16 @@
 import logging
 import openai
 from twitchio.ext import commands
-import key
 from gtts import gTTS
 import pyglet
 import os
 from asyncio import sleep
 import random
 
-# Set up logging (uncomment following line to enable logging)
+import key
+import dependencies.promotional as promo
+
+# Set up logging
 logging.basicConfig(level = logging.INFO)
 
 # Initialize global variables
@@ -62,7 +64,7 @@ class Bot(commands.Bot):
 
         response = completions.choices[0].text
 
-        # Bandaid fix for the bot not being able to speak (with the stacking of resonses method)
+        # Play the response using gTTS and pyglet
         tts = gTTS(text = response)
         tts.save("speech.mp3")
         speech = pyglet.resource.media('speech.mp3')
@@ -70,33 +72,50 @@ class Bot(commands.Bot):
         speech.play()
         os.remove("speech.mp3")
 
+        # Increment the number of times chatGPT has been used
         chatGPT_uses += 1
         if chatGPT_uses % 100 == 0:
-            promo = random.choice(potential_responses)
-            tts = gTTS(text = promo)
+            # Play a random promotional message from the list
+            response = random.choice(potential_responses)
+            tts = gTTS(text = response)
             tts.save("promo.mp3")
             speech.queue(pyglet.media.load("promo.mp3", streaming=False))
             os.remove("promo.mp3")
 
         # Send the response to the chat, split into chunks if it's too long
-        n = 500
-        chunks = [response[i:i+n] for i in range(0, len(response), n)]
+        charLimit = 500
+        chunks = [response[i:i+charLimit] for i in range(0, len(response), charLimit)]
         for chunk in chunks:
             await ctx.send(chunk)
 
 
-potential_responses = [ "Don't forgot to follow me on Twitch!",
-                        "If you enjoy this stream, don't forget to follow me on Twitch! It's free!",
-                        "If you want to see more of this, don't forget to follow me on Twitch!",
-                        "Interested in the development process for this stream/bot? Check out twitch.tv/mxGlass",
-                        "Check out twitch.tv/mxGlass for more content like this!",
-                        "Want to be part of our community? Check out twitch.tv/mxGlass",
-                        "Thanks for talking with me, chat! Don't forget to follow me on Twitch!",
-                        "Want to contribute to the development of this bot? Check out twitch.tv/mxGlass and get involved on GitHub!",
-                        "If you enjoy this bot, remember you can always use your Twitch Prime sub on me -- ChatGPT!"
-                        "Take money from Jeff Bezos and give it to me! Twitch Prime sub on OpenAIChatGPT!",
-                        "If you'd rather support the developer, you can always subscribe or follow him on Twitch! twitch.tv/mxGlass",
-                      ]
+    # Command that makes ChatGPT talk to itself
+    @commands.command()
+    async def argue(self, ctx: commands.Context, *, opening_prompt: str):
+        openai.api_key = key.API_KEY
+        prompt = (f"{opening_prompt}\n")
+
+        completions = openai.Completion.create(
+            engine = "text-davinci-002",
+            prompt = prompt,
+            max_tokens = 512,
+            n = 1,
+            stop = None,
+            temperature = 0.7,
+        )
+
+        response = completions.choices[0].text
+
+        # Send the response to the chat, split into chunks if it's too long
+        charLimit = 500
+        chunks = [response[i:i+charLimit] for i in range(0, len(response), charLimit)]
+        for chunk in chunks:
+            await ctx.send(chunk)
+
+        # Make ChatGPT talk to itself by using the response as the new opening prompt
+        await self.argue(ctx, opening_prompt=response)
+
+potential_responses = promo.promotional_responses
 
 def run():
     bot = Bot()
