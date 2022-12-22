@@ -13,7 +13,7 @@ from asyncio import sleep
 import random
 
 # Set up logging (uncomment following line to enable logging)
-# logging.basicConfig(level = logging.INFO)
+logging.basicConfig(level = logging.INFO)
 
 # Initialize global variables
 global potential_responses
